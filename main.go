@@ -42,15 +42,15 @@ func main() {
 
 func GetStrOccurrencesCount(URL string, counters *counter.Counters, activeProcesses chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	req := scrapper.NewRequest(URL)
+	source := scrapper.NewWebResource(URL)
 
 	fmt.Printf("Doing request to %s...\n", URL)
-	err := req.GetResponse()
+	err := source.GetResponse()
 	if err != nil {
 		return
 	}
 
-	occurrencesCount := req.CountRepeatedStrInBody(subStr)
+	occurrencesCount := source.CountRepeatedStrInBody(subStr)
 	counters.Store(URL, occurrencesCount)
 	fmt.Printf("%s done!\n", URL)
 

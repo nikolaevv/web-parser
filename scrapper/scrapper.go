@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-type Request struct {
+type WebResource struct {
 	URL          string
 	ResponseBody string
 }
 
-func NewRequest(URL string) *Request {
-	return &Request{
+func NewWebResource(URL string) *WebResource {
+	return &WebResource{
 		URL: URL,
 	}
 }
 
-func (req *Request) GetResponse() (err error) {
+func (req *WebResource) GetResponse() (err error) {
 	resp, err := http.Get(req.URL)
 	if err != nil {
 		return err
@@ -37,6 +37,6 @@ func (req *Request) GetResponse() (err error) {
 	return nil
 }
 
-func (req *Request) CountRepeatedStrInBody(subStr string) (occurrencesCount int) {
+func (req *WebResource) CountRepeatedStrInBody(subStr string) (occurrencesCount int) {
 	return strings.Count(req.ResponseBody, subStr)
 }
