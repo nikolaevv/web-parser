@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"sync"
-	"time"
-	"web-parser/counters"
+	"web-parser/counter"
+	"web-parser/scrapper"
 )
 
 const k = 2
+const subStr = "Go"
 
 func main() {
 	var URLs = []string{
@@ -19,7 +20,7 @@ func main() {
 	activeProcesses := make(chan int, k)
 	wg := &sync.WaitGroup{}
 
-	counters := counters.NewCounters()
+	counters := counter.NewCounters()
 
 	for _, url := range URLs {
 		wg.Add(1)
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	wg.Wait()
+	fmt.Println()
 
 	totalCount := 0
 	for URL, occurrencesCount := range counters.LoadAll() {
@@ -38,11 +40,19 @@ func main() {
 	fmt.Printf("Total: %d", totalCount)
 }
 
-func GetStrOccurrencesCount(URL string, counters *counters.Counters, activeProcesses chan int, wg *sync.WaitGroup) {
+func GetStrOccurrencesCount(URL string, counters *counter.Counters, activeProcesses chan int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Printf("Doing big request to %s...\n", URL)
-	time.Sleep(time.Second * 3)
-	occurrencesCount := 0
+	req := scrapper.NewRequest(URL)
+
+	fmt.Printf("Doing request to %s...\n", URL)
+	err := req.GetResponse()
+	if err != nil {
+		return
+	}
+
+	occurrencesCount := req.CountRepeatedStrInBody(subStr)
 	counters.Store(URL, occurrencesCount)
+	fmt.Printf("%s done!\n", URL)
+
 	<-activeProcesses
 }

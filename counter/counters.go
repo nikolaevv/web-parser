@@ -1,4 +1,4 @@
-package counters
+package counter
 
 import "sync"
 
