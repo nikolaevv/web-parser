@@ -33,7 +33,7 @@ func main() {
 	for _, url := range urls {
 		wg.Add(1)
 		limit <- 1
-		go GetSubstrCount(url, c, limit, wg)
+		go CountSubstrFromUrl(url, c, limit, wg)
 	}
 
 	wg.Wait()
@@ -46,7 +46,7 @@ func main() {
 	log.Printf("Total: %d\n", total)
 }
 
-func GetSubstrCount(url string, c *counter.Counters, limit chan int, wg *sync.WaitGroup) {
+func CountSubstrFromUrl(url string, c *counter.Counters, limit chan int, wg *sync.WaitGroup) {
 	source := website.New(url)
 	defer wg.Done()
 
