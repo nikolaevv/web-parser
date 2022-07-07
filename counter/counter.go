@@ -7,7 +7,7 @@ type Counters struct {
 	m  map[string]int
 }
 
-func NewCounters() *Counters {
+func New() *Counters {
 	return &Counters{
 		m: make(map[string]int),
 	}

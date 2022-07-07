@@ -1,58 +1,62 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"sync"
 	"web-parser/counter"
-	"web-parser/scrapper"
+	"web-parser/website"
 )
 
-const k = 2
-const subStr = "Go"
+const (
+	processes = 5
+	subStr    = "Go"
+)
 
-func main() {
-	var URLs = []string{
+var (
+	urls = []string{
 		"https://golang.org",
 		"https://go.dev/",
 		"https://ru.wikipedia.org/wiki/Go",
-		"https://blog.skillfactory.ru/glossary/golang/",
+		"http://golang-book.ru/",
+		"https://golangify.com/",
+		"https://tproger.ru/translations/golang-basics/",
+		"https://goforum.info/",
 	}
-	activeProcesses := make(chan int, k)
+)
+
+func main() {
+	limit := make(chan int, processes)
 	wg := &sync.WaitGroup{}
+	c := counter.New()
+	total := 0
 
-	counters := counter.NewCounters()
-
-	for _, url := range URLs {
+	for _, url := range urls {
 		wg.Add(1)
-		activeProcesses <- 1
-		go GetStrOccurrencesCount(url, counters, activeProcesses, wg)
+		limit <- 1
+		go GetSubstrCount(url, c, limit, wg)
 	}
 
 	wg.Wait()
-	fmt.Println()
 
-	totalCount := 0
-	for URL, occurrencesCount := range counters.LoadAll() {
-		fmt.Printf("Count for %s: %d\n", URL, occurrencesCount)
-		totalCount += occurrencesCount
+	for url, count := range c.LoadAll() {
+		log.Printf("Count for %s: %d\n", url, count)
+		total += count
 	}
 
-	fmt.Printf("Total: %d", totalCount)
+	log.Printf("Total: %d\n", total)
 }
 
-func GetStrOccurrencesCount(URL string, counters *counter.Counters, activeProcesses chan int, wg *sync.WaitGroup) {
+func GetSubstrCount(url string, c *counter.Counters, limit chan int, wg *sync.WaitGroup) {
+	source := website.New(url)
 	defer wg.Done()
-	source := scrapper.NewWebResource(URL)
 
-	fmt.Printf("Doing request to %s...\n", URL)
-	err := source.GetResponse()
-	if err != nil {
+	log.Printf("Doing request to %s...\n", url)
+	if err := source.GetResponse(); err != nil {
 		return
 	}
 
-	occurrencesCount := source.CountRepeatedStrInBody(subStr)
-	counters.Store(URL, occurrencesCount)
-	fmt.Printf("%s done!\n", URL)
+	log.Printf("%s done!\n", url)
+	c.Store(url, source.Count(subStr))
 
-	<-activeProcesses
+	<-limit
 }

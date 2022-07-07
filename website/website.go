@@ -1,4 +1,4 @@
-package scrapper
+package website
 
 import (
 	"io"
@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-type WebResource struct {
+type Website struct {
 	URL          string
 	ResponseBody string
 }
 
-func NewWebResource(URL string) *WebResource {
-	return &WebResource{
+func New(URL string) *Website {
+	return &Website{
 		URL: URL,
 	}
 }
 
-func (req *WebResource) GetResponse() (err error) {
+func (req *Website) GetResponse() (err error) {
 	resp, err := http.Get(req.URL)
 	if err != nil {
 		return err
@@ -37,6 +37,6 @@ func (req *WebResource) GetResponse() (err error) {
 	return nil
 }
 
-func (req *WebResource) CountRepeatedStrInBody(subStr string) (occurrencesCount int) {
+func (req *Website) Count(subStr string) (count int) {
 	return strings.Count(req.ResponseBody, subStr)
 }
